@@ -1,7 +1,7 @@
 import http from 'http';
 import https from 'https';
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3000;
 const PIPED_API = process.env.PIPED_API || 'https://pipedapi.kavin.rocks';
 
 function httpGet(url) {
