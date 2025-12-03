@@ -1,0 +1,32 @@
+zerops:
+  - setup: nodejs
+    # ==== how to build your application ====
+    build:
+      # what technologies should the build
+      # container be based on (can be an array)
+      base: nodejs@22
+
+      # what commands to use to build your app
+      buildCommands:
+        - echo "Ready"
+
+      # select which files / folders to deploy
+      # after the build successfully finished
+      deployFiles:
+        - api-zerops.js
+        - package.json
+
+    # ==== how to run your application ====
+    run:
+      # what technology should the runtime
+      # container be based on
+      base: nodejs@22
+
+      # what ports your app listens on
+      # and whether it supports http traffic
+      ports:
+        - port: 3000
+          httpSupport: true
+
+      # how to start your application
+      start: node api-zerops.js

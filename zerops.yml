@@ -33,7 +33,7 @@ zerops:
       UDS: 0
 
   # 4. API-ul tău (YouTube Audio)
-  - setup: youtube-api
+  - setup: nodejs
     build:
       base: nodejs@22
       buildCommands:
