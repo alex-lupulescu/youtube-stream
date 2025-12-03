@@ -1,0 +1,50 @@
+zerops:
+  # PostgreSQL Database
+  - setup: db
+    type: postgresql@16
+    mode: NON_HA
+
+  # Piped Backend (API)
+  - setup: piped-backend
+    build:
+      base: nodejs@22
+      buildCommands:
+        - echo "Downloading piped-backend..."
+        - apt-get update && apt-get install -y wget openjdk-21-jre-headless
+        - wget -O piped.jar https://github.com/TeamPiped/Piped-Backend/releases/latest/download/piped.jar
+      deployFiles:
+        - piped.jar
+        - config.properties
+    run:
+      base: nodejs@22
+      prepareCommands:
+        - apt-get update && apt-get install -y openjdk-21-jre-headless
+      ports:
+        - port: 8080
+          httpSupport: true
+      start: java -jar piped.jar
+      envVariables:
+        POSTGRES_HOST: ${db_hostname}
+        POSTGRES_PORT: ${db_port}
+        POSTGRES_DB: ${db_database}
+        POSTGRES_USER: ${db_user}
+        POSTGRES_PASSWORD: ${db_password}
+
+  # Piped Proxy
+  - setup: piped-proxy
+    build:
+      base: nodejs@22
+      buildCommands:
+        - echo "Setting up piped-proxy..."
+        - apt-get update && apt-get install -y git cargo
+        - git clone https://github.com/TeamPiped/piped-proxy.git
+        - cd piped-proxy && cargo build --release
+      deployFiles:
+        - piped-proxy/target/release/piped-proxy
+    run:
+      base: nodejs@22
+      ports:
+        - port: 8080
+          httpSupport: true
+      start: ./piped-proxy/target/release/piped-proxy
+

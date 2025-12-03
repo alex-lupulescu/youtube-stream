@@ -3,7 +3,11 @@ import https from 'https';
 
 const PORT = process.env.PORT || 3000;
 
+// Propriul Piped (din env) + fallback la instanțe publice
+const OWN_PIPED = process.env.PIPED_API;
+
 const PIPED_INSTANCES = [
+  ...(OWN_PIPED ? [OWN_PIPED] : []),
   'pipedapi.kavin.rocks',
   'pipedapi.leptons.xyz',
   'pipedapi.nosebs.ru',

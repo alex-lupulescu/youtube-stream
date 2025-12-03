@@ -1,5 +1,39 @@
 zerops:
-  - setup: nodejs
+  # 1. PostgreSQL Database pentru Piped
+  - setup: db
+    type: postgresql@16
+    mode: NON_HA
+
+  # 2. Piped Backend (API)
+  - setup: piped-backend
+    type: docker
+    image: 1337kavin/piped:latest
+    ports:
+      - port: 8080
+        httpSupport: true
+    envVariables:
+      PORT: 8080
+      POSTGRES_HOST: ${db_hostname}
+      POSTGRES_PORT: ${db_port}
+      POSTGRES_DB: ${db_database}
+      POSTGRES_USER: ${db_user}
+      POSTGRES_PASSWORD: ${db_password}
+      PROXY_PART: ${piped-proxy_zeropsSubdomain}
+      DISABLE_REGISTRATION: true
+      FEED_RETENTION: 30
+
+  # 3. Piped Proxy (pentru stream-uri)
+  - setup: piped-proxy
+    type: docker
+    image: 1337kavin/piped-proxy:latest
+    ports:
+      - port: 8080
+        httpSupport: true
+    envVariables:
+      UDS: 0
+
+  # 4. API-ul tău (YouTube Audio)
+  - setup: youtube-api
     build:
       base: nodejs@22
       buildCommands:
@@ -7,10 +41,11 @@ zerops:
       deployFiles:
         - api-zerops.js
         - package.json
-
     run:
       base: nodejs@22
       ports:
         - port: 3000
           httpSupport: true
       start: node api-zerops.js
+      envVariables:
+        PIPED_API: ${piped-backend_zeropsSubdomain}
