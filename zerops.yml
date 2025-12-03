@@ -1,51 +1,84 @@
 zerops:
-  # 1. PostgreSQL Database pentru Piped
+  # ============================================
+  # PIPED SELF-HOSTED PE ZEROPS
+  # ============================================
+
+  # 1. PostgreSQL Database
   - setup: db
-    type: postgresql@16
-    mode: NON_HA
+    build:
+      base: docker
+      dockerfile: |
+        FROM postgres:16-alpine
+        ENV POSTGRES_DB=piped
+        ENV POSTGRES_USER=piped
+        ENV POSTGRES_PASSWORD=pipedzerops123
+    run:
+      ports:
+        - port: 5432
+      envVariables:
+        POSTGRES_DB: piped
+        POSTGRES_USER: piped
+        POSTGRES_PASSWORD: pipedzerops123
 
   # 2. Piped Backend (API)
   - setup: pipedbackend
-    type: docker
-    image: 1337kavin/piped:latest
-    ports:
-      - port: 8080
-        httpSupport: true
-    envVariables:
-      PORT: 8080
-      POSTGRES_HOST: ${db_hostname}
-      POSTGRES_PORT: ${db_port}
-      POSTGRES_DB: ${db_database}
-      POSTGRES_USER: ${db_user}
-      POSTGRES_PASSWORD: ${db_password}
-      PROXY_PART: ${piped-proxy_zeropsSubdomain}
-      DISABLE_REGISTRATION: true
-      FEED_RETENTION: 30
+    build:
+      base: docker
+      dockerfile: |
+        FROM 1337kavin/piped:latest
+    run:
+      ports:
+        - port: 8080
+          httpSupport: true
+      envVariables:
+        PORT: "8080"
+        # Database
+        POSTGRES_HOST: db
+        POSTGRES_PORT: "5432"
+        POSTGRES_DB: piped
+        POSTGRES_USER: piped
+        POSTGRES_PASSWORD: pipedzerops123
+        # Proxy URL - TREBUIE ACTUALIZAT DUPĂ DEPLOY
+        PROXY_PART: https://pipedproxy.zerops.app
+        # Settings
+        DISABLE_REGISTRATION: "true"
+        FEED_RETENTION: "30"
+        COMPROMISED_PASSWORD_CHECK: "false"
+        DISABLE_LBRY: "true"
 
   # 3. Piped Proxy (pentru stream-uri)
   - setup: pipedproxy
-    type: docker
-    image: 1337kavin/piped-proxy:latest
-    ports:
-      - port: 8080
-        httpSupport: true
-    envVariables:
-      UDS: 0
-
-  # 4. API-ul tău (YouTube Audio)
-  - setup: nodejs
     build:
-      base: nodejs@22
-      buildCommands:
-        - echo "Ready"
-      deployFiles:
-        - api-zerops.js
-        - package.json
+      base: docker
+      dockerfile: |
+        FROM 1337kavin/piped-proxy:latest
+        ENV UDS=0
     run:
-      base: nodejs@22
+      ports:
+        - port: 8080
+          httpSupport: true
+      envVariables:
+        UDS: "0"
+
+  # 4. YouTube Audio API (API-ul tău)
+  - setup: youtubeapi
+    build:
+      base: docker
+      dockerfile: |
+        FROM node:22-alpine
+        WORKDIR /app
+        COPY package.json .
+        COPY api-zerops.js .
+        EXPOSE 3000
+        CMD ["node", "api-zerops.js"]
+      deployFiles:
+        - package.json
+        - api-zerops.js
+    run:
       ports:
         - port: 3000
           httpSupport: true
-      start: node api-zerops.js
       envVariables:
-        PIPED_API: ${piped-backend_zeropsSubdomain}
+        PORT: "3000"
+        # Va folosi propriul Piped - ACTUALIZEAZĂ DUPĂ DEPLOY
+        PIPED_API: https://pipedbackend.zerops.app
