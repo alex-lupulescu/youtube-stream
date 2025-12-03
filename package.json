@@ -1,0 +1,12 @@
+{
+  "name": "youtube-tv-audio",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "YouTube Audio Streaming API",
+  "main": "api.js",
+  "scripts": {
+    "start": "node api.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {}
+}
