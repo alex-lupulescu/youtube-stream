@@ -5,7 +5,7 @@ zerops:
     mode: NON_HA
 
   # 2. Piped Backend (API)
-  - setup: piped-backend
+  - setup: pipedbackend
     type: docker
     image: 1337kavin/piped:latest
     ports:
@@ -23,7 +23,7 @@ zerops:
       FEED_RETENTION: 30
 
   # 3. Piped Proxy (pentru stream-uri)
-  - setup: piped-proxy
+  - setup: pipedproxy
     type: docker
     image: 1337kavin/piped-proxy:latest
     ports:
