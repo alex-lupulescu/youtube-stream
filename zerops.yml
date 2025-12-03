@@ -6,6 +6,7 @@ zerops:
         - echo "Ready"
       deployFiles:
         - api-zerops.js
+        - package.json
 
     run:
       base: nodejs@22
